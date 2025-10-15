@@ -298,15 +298,22 @@ public partial class RunnerState
         this.stateId = StateId.PAUSED;
 
         // PAUSED behavior
-        // uml: enter / { UpdateAnimation("idle"); }
+        // uml: enter / { PauseMove = true; }
         {
-            // Step 1: execute action `UpdateAnimation("idle");`
-            UpdateAnimation("idle");
+            // Step 1: execute action `PauseMove = true;`
+            PauseMove = true;
         } // end of behavior for PAUSED
     }
 
     private void PAUSED_exit()
     {
+        // PAUSED behavior
+        // uml: exit / { ResumeMove = true; }
+        {
+            // Step 1: execute action `ResumeMove = true;`
+            ResumeMove = true;
+        } // end of behavior for PAUSED
+
         this.stateId = StateId.ROOT;
     }
 

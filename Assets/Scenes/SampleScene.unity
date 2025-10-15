@@ -1202,15 +1202,13 @@ MonoBehaviour:
   runnerState:
     stateId: 0
     startMove: 1
-    cancelMove: 0
+    pause: 0
     isTargetReached: 0
-    onUpdateAnimation:
-      m_PersistentCalls:
-        m_Calls: []
     onRotateToTarget:
       m_PersistentCalls:
         m_Calls: []
-    animator: {fileID: 1974120484}
+  animator: {fileID: 1974120484}
+  lastAnimationSpeed: 1
   targets:
   - {fileID: 295463556}
   - {fileID: 1197090179}
@@ -1221,7 +1219,7 @@ MonoBehaviour:
   targetIndex: 0
   direction: {x: 0, y: 0, z: 0}
   rangeSq: 0.001
-  speed: 0.18
+  moveSpeed: 0.18
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

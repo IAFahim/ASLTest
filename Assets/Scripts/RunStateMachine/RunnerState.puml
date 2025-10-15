@@ -18,7 +18,8 @@ state GET_NEW_TARGET {
   GET_NEW_TARGET : enter / RotateToTarget();
 }
 state PAUSED {
-  PAUSED : enter / UpdateAnimation("idle");
+  PAUSED : enter / PauseMove = true;
+  PAUSED : exit / ResumeMove = true;
 }
 
 /'! $CONFIG : toml

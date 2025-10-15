@@ -279,7 +279,9 @@ PAUSED
 
 PAUSED : PAUSED
 
-PAUSED : enter / #123; UpdateAnimation("idle")#59; #125;
+PAUSED : enter / #123; PauseMove = true#59; #125;
+
+PAUSED : exit / #123; ResumeMove = true#59; #125;
 
 ROOT.(InitialState) --> IDLE
 
@@ -687,15 +689,22 @@ evaluateGuard = null;
         } // end of behavior for PAUSED
         
         // PAUSED behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"idle\");"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "PauseMove = true;"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"idle\");");`
-            this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"idle\");");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "PauseMove = true;");`
+            this.tracer?.log("⚡ FSM would execute action: " + "PauseMove = true;");
         } // end of behavior for PAUSED
     }
     
     #PAUSED_exit()
     {
+        // PAUSED behavior
+        // uml: exit / { this.tracer?.log("⚡ FSM would execute action: " + "ResumeMove = true;"); }
+        {
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "ResumeMove = true;");`
+            this.tracer?.log("⚡ FSM would execute action: " + "ResumeMove = true;");
+        } // end of behavior for PAUSED
+        
         // PAUSED behavior
         // uml: exit / { this.tracer?.exitState('PAUSED'); }
         {

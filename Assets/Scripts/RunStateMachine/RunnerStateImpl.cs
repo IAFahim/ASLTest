@@ -2,6 +2,7 @@ using System;
 using RunStateMachine;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Playables;
 
 [Serializable]
 public partial class RunnerState
@@ -10,31 +11,47 @@ public partial class RunnerState
     public bool pause;
     public bool isTargetReached;
 
-    public UnityEvent<string> onUpdateAnimation = new UnityEvent<string>();
     public UnityEvent onRotateToTarget = new UnityEvent();
-
-    [SerializeField] Animator animator;
     
     private ITargetAble _targetAble;
     private IMoveAble _moveAble;
+    private IAnimatable _animatable;
     
     private bool StartMove => startMove;
-    private bool PauseMove => pause;
-    private bool ResumeMove => !pause;
+    private bool PauseMove
+    {
+        get => pause;
+        set
+        {
+            pause = value;
+            _animatable.Pause();
+        }
+    }
+
+    private bool ResumeMove
+    {
+        get => !pause;
+        set
+        {
+            pause = !value;
+            _animatable.Resume();
+        }
+    }
+
     private bool IsTargetReached => isTargetReached;
 
 
-    public void Init(ITargetAble targetAble, IMoveAble moveAble)
+    public void Init(ITargetAble targetAble, IMoveAble moveAble, IAnimatable animatable)
     {
         _targetAble = targetAble;
         _moveAble = moveAble;
+        _animatable = animatable;
         Start();
     }
 
     private void UpdateAnimation(string animationName)
     {
-        animator.Play(animationName);
-        onUpdateAnimation.Invoke(animationName);
+        _animatable.Play(animationName);
     }
 
     private void RotateToTarget()
