@@ -1,7 +1,9 @@
 namespace Customization.Runtime
 {
-    public class ISaveLoadAble
+    public interface ISaveLoadAble
     {
-        
+        public string SaveLoadKey { get; set; }
+        void Save();
+        void Load();
     }
 }
