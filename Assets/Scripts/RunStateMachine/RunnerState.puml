@@ -1,0 +1,22 @@
+@startuml
+[*] --> FREEZE
+FREEZE --> MOVE_TO_TARGET
+MOVE_TO_TARGET --> GET_NEW_TARGET : [IsTargetReached]
+GET_NEW_TARGET --> MOVE_TO_TARGET
+
+state FREEZE {
+  FREEZE : enter / UpdateAnimation("");
+}
+
+state MOVE_TO_TARGET {
+  MOVE_TO_TARGET : enter / UpdateAnimation("Running");
+  MOVE_TO_TARGET : do / MoveTowardTarget();
+}
+
+state GET_NEW_TARGET {
+  GET_NEW_TARGET : enter / RotateToTarget();
+}
+/'! $CONFIG : toml
+SmRunnerSettings.transpilerId = "CSharp"
+'/
+@enduml
