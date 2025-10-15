@@ -1,21 +1,26 @@
 @startuml
-[*] --> FREEZE
-FREEZE --> MOVE_TO_TARGET
-MOVE_TO_TARGET --> GET_NEW_TARGET : [IsTargetReached]
+[*] --> IDLE
+IDLE --> GET_NEW_TARGET : [StartMove]
 GET_NEW_TARGET --> MOVE_TO_TARGET
-
-state FREEZE {
-  FREEZE : enter / UpdateAnimation("");
+MOVE_TO_TARGET --> GET_NEW_TARGET : [IsTargetReached]
+GET_NEW_TARGET --> PAUSED : [PauseMove]
+MOVE_TO_TARGET --> PAUSED : [PauseMove]
+PAUSED --> MOVE_TO_TARGET : [ResumeMove]
+state IDLE {
+  IDLE : enter / UpdateAnimation("idle");
 }
-
 state MOVE_TO_TARGET {
-  MOVE_TO_TARGET : enter / UpdateAnimation("Running");
+  MOVE_TO_TARGET : enter / UpdateAnimation("running");
   MOVE_TO_TARGET : do / MoveTowardTarget();
 }
-
 state GET_NEW_TARGET {
+  GET_NEW_TARGET : enter / FindNewTarget();
   GET_NEW_TARGET : enter / RotateToTarget();
 }
+state PAUSED {
+  PAUSED : enter / UpdateAnimation("idle");
+}
+
 /'! $CONFIG : toml
 SmRunnerSettings.transpilerId = "CSharp"
 '/

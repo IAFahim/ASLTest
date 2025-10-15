@@ -253,33 +253,47 @@ stateDiagram
 %% See https://github.com/StateSmith/StateSmith/issues/404
 state "." as ROOT.(InitialState)
 
-FREEZE
+IDLE
 
-FREEZE : FREEZE
+IDLE : IDLE
 
-FREEZE : enter / #123; UpdateAnimation("")#59; #125;
-
-MOVE_TO_TARGET
-
-MOVE_TO_TARGET : MOVE_TO_TARGET
-
-MOVE_TO_TARGET : enter / #123; UpdateAnimation("Running")#59; #125;
-
-MOVE_TO_TARGET : do / #123; MoveTowardTarget()#59; #125;
+IDLE : enter / #123; UpdateAnimation("idle")#59; #125;
 
 GET_NEW_TARGET
 
 GET_NEW_TARGET : GET_NEW_TARGET
 
+GET_NEW_TARGET : enter / #123; FindNewTarget()#59; #125;
+
 GET_NEW_TARGET : enter / #123; RotateToTarget()#59; #125;
 
-ROOT.(InitialState) --> FREEZE
+MOVE_TO_TARGET
 
-FREEZE --> MOVE_TO_TARGET : do
+MOVE_TO_TARGET : MOVE_TO_TARGET
+
+MOVE_TO_TARGET : enter / #123; UpdateAnimation("running")#59; #125;
+
+MOVE_TO_TARGET : do / #123; MoveTowardTarget()#59; #125;
+
+PAUSED
+
+PAUSED : PAUSED
+
+PAUSED : enter / #123; UpdateAnimation("idle")#59; #125;
+
+ROOT.(InitialState) --> IDLE
+
+IDLE --> GET_NEW_TARGET : do [StartMove]
+
+GET_NEW_TARGET --> MOVE_TO_TARGET : do
+
+GET_NEW_TARGET --> PAUSED : do [PauseMove]
 
 MOVE_TO_TARGET --> GET_NEW_TARGET : do [IsTargetReached]
 
-GET_NEW_TARGET --> MOVE_TO_TARGET : do
+MOVE_TO_TARGET --> PAUSED : do [PauseMove]
+
+PAUSED --> MOVE_TO_TARGET : do [ResumeMove]
 
 
 
@@ -340,13 +354,14 @@ evaluateGuard = null;
     static StateId = 
     {
         ROOT : 0,
-        FREEZE : 1,
-        GET_NEW_TARGET : 2,
+        GET_NEW_TARGET : 1,
+        IDLE : 2,
         MOVE_TO_TARGET : 3,
+        PAUSED : 4,
     }
     static { Object.freeze(this.StateId); }
     
-    static StateIdCount = 4;
+    static StateIdCount = 5;
     static { Object.freeze(this.StateIdCount); }
     
     // Used internally by state machine. Feel free to inspect, but don't modify.
@@ -367,15 +382,15 @@ evaluateGuard = null;
             // ROOT.<InitialState> is a pseudo state and cannot have an `enter` trigger.
             
             // ROOT.<InitialState> behavior
-            // uml: / { this.tracer?.edgeTransition("edge0"); } TransitionTo(FREEZE)
+            // uml: / { this.tracer?.edgeTransition("edge0"); } TransitionTo(IDLE)
             {
                 // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition). Already at LCA, no exiting required.
                 
                 // Step 2: Transition action: `this.tracer?.edgeTransition("edge0");`.
                 this.tracer?.edgeTransition("edge0");
                 
-                // Step 3: Enter/move towards transition target `FREEZE`.
-                this.#FREEZE_enter();
+                // Step 3: Enter/move towards transition target `IDLE`.
+                this.#IDLE_enter();
                 
                 // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
                 return;
@@ -395,19 +410,24 @@ evaluateGuard = null;
                 // state and ancestors have no handler for `do` event.
                 break;
             
-            // STATE: FREEZE
-            case RunnerState.StateId.FREEZE:
-                this.#FREEZE_do(); 
-                break;
-            
             // STATE: GET_NEW_TARGET
             case RunnerState.StateId.GET_NEW_TARGET:
                 this.#GET_NEW_TARGET_do(); 
                 break;
             
+            // STATE: IDLE
+            case RunnerState.StateId.IDLE:
+                this.#IDLE_do(); 
+                break;
+            
             // STATE: MOVE_TO_TARGET
             case RunnerState.StateId.MOVE_TO_TARGET:
                 this.#MOVE_TO_TARGET_do(); 
+                break;
+            
+            // STATE: PAUSED
+            case RunnerState.StateId.PAUSED:
+                this.#PAUSED_do(); 
                 break;
         }
         
@@ -421,11 +441,13 @@ evaluateGuard = null;
         {
             switch (this.stateId)
             {
-                case RunnerState.StateId.FREEZE: this.#FREEZE_exit(); break;
-                
                 case RunnerState.StateId.GET_NEW_TARGET: this.#GET_NEW_TARGET_exit(); break;
                 
+                case RunnerState.StateId.IDLE: this.#IDLE_exit(); break;
+                
                 case RunnerState.StateId.MOVE_TO_TARGET: this.#MOVE_TO_TARGET_exit(); break;
+                
+                case RunnerState.StateId.PAUSED: this.#PAUSED_exit(); break;
                 
                 default: return;  // Just to be safe. Prevents infinite loop if state ID memory is somehow corrupted.
             }
@@ -444,63 +466,6 @@ evaluateGuard = null;
     
     
     ////////////////////////////////////////////////////////////////////////////////
-    // event handlers for state FREEZE
-    ////////////////////////////////////////////////////////////////////////////////
-    
-    #FREEZE_enter()
-    {
-        this.stateId = RunnerState.StateId.FREEZE;
-        
-        // FREEZE behavior
-        // uml: enter / { this.tracer?.enterState('FREEZE'); }
-        {
-            // Step 1: execute action `this.tracer?.enterState('FREEZE');`
-            this.tracer?.enterState('FREEZE');
-        } // end of behavior for FREEZE
-        
-        // FREEZE behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"\");"); }
-        {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"\");");`
-            this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"\");");
-        } // end of behavior for FREEZE
-    }
-    
-    #FREEZE_exit()
-    {
-        // FREEZE behavior
-        // uml: exit / { this.tracer?.exitState('FREEZE'); }
-        {
-            // Step 1: execute action `this.tracer?.exitState('FREEZE');`
-            this.tracer?.exitState('FREEZE');
-        } // end of behavior for FREEZE
-        
-        this.stateId = RunnerState.StateId.ROOT;
-    }
-    
-    #FREEZE_do()
-    {
-        // FREEZE behavior
-        // uml: do / { this.tracer?.edgeTransition("edge1"); } TransitionTo(MOVE_TO_TARGET)
-        {
-            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
-            this.#FREEZE_exit();
-            
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge1");`.
-            this.tracer?.edgeTransition("edge1");
-            
-            // Step 3: Enter/move towards transition target `MOVE_TO_TARGET`.
-            this.#MOVE_TO_TARGET_enter();
-            
-            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
-            return;
-        } // end of behavior for FREEZE
-        
-        // No ancestor handles this event.
-    }
-    
-    
-    ////////////////////////////////////////////////////////////////////////////////
     // event handlers for state GET_NEW_TARGET
     ////////////////////////////////////////////////////////////////////////////////
     
@@ -513,6 +478,13 @@ evaluateGuard = null;
         {
             // Step 1: execute action `this.tracer?.enterState('GET_NEW_TARGET');`
             this.tracer?.enterState('GET_NEW_TARGET');
+        } // end of behavior for GET_NEW_TARGET
+        
+        // GET_NEW_TARGET behavior
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "FindNewTarget();"); }
+        {
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "FindNewTarget();");`
+            this.tracer?.log("⚡ FSM would execute action: " + "FindNewTarget();");
         } // end of behavior for GET_NEW_TARGET
         
         // GET_NEW_TARGET behavior
@@ -538,13 +510,13 @@ evaluateGuard = null;
     #GET_NEW_TARGET_do()
     {
         // GET_NEW_TARGET behavior
-        // uml: do / { this.tracer?.edgeTransition("edge3"); } TransitionTo(MOVE_TO_TARGET)
+        // uml: do / { this.tracer?.edgeTransition("edge2"); } TransitionTo(MOVE_TO_TARGET)
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#GET_NEW_TARGET_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge3");`.
-            this.tracer?.edgeTransition("edge3");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge2");`.
+            this.tracer?.edgeTransition("edge2");
             
             // Step 3: Enter/move towards transition target `MOVE_TO_TARGET`.
             this.#MOVE_TO_TARGET_enter();
@@ -552,6 +524,66 @@ evaluateGuard = null;
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
         } // end of behavior for GET_NEW_TARGET
+        
+        // unreachable behavior: `do [this.tracer?.log("🛡️ User evaluating guard: " + "PauseMove") || this.evaluateGuard("GET_NEW_TARGET","do [PauseMove] TransitionTo(PAUSED)")] / { this.tracer?.edgeTransition("edge3"); } TransitionTo(PAUSED)` due to unconditional transition above
+        
+        // No ancestor handles this event.
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state IDLE
+    ////////////////////////////////////////////////////////////////////////////////
+    
+    #IDLE_enter()
+    {
+        this.stateId = RunnerState.StateId.IDLE;
+        
+        // IDLE behavior
+        // uml: enter / { this.tracer?.enterState('IDLE'); }
+        {
+            // Step 1: execute action `this.tracer?.enterState('IDLE');`
+            this.tracer?.enterState('IDLE');
+        } // end of behavior for IDLE
+        
+        // IDLE behavior
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"idle\");"); }
+        {
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"idle\");");`
+            this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"idle\");");
+        } // end of behavior for IDLE
+    }
+    
+    #IDLE_exit()
+    {
+        // IDLE behavior
+        // uml: exit / { this.tracer?.exitState('IDLE'); }
+        {
+            // Step 1: execute action `this.tracer?.exitState('IDLE');`
+            this.tracer?.exitState('IDLE');
+        } // end of behavior for IDLE
+        
+        this.stateId = RunnerState.StateId.ROOT;
+    }
+    
+    #IDLE_do()
+    {
+        // IDLE behavior
+        // uml: do [this.tracer?.log("🛡️ User evaluating guard: " + "StartMove") || this.evaluateGuard("IDLE","do [StartMove] TransitionTo(GET_NEW_TARGET)")] / { this.tracer?.edgeTransition("edge1"); } TransitionTo(GET_NEW_TARGET)
+        if (this.tracer?.log("🛡️ User evaluating guard: " + "StartMove") || this.evaluateGuard("IDLE","do [StartMove] TransitionTo(GET_NEW_TARGET)"))
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            this.#IDLE_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge1");`.
+            this.tracer?.edgeTransition("edge1");
+            
+            // Step 3: Enter/move towards transition target `GET_NEW_TARGET`.
+            this.#GET_NEW_TARGET_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for IDLE
         
         // No ancestor handles this event.
     }
@@ -573,10 +605,10 @@ evaluateGuard = null;
         } // end of behavior for MOVE_TO_TARGET
         
         // MOVE_TO_TARGET behavior
-        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"Running\");"); }
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"running\");"); }
         {
-            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"Running\");");`
-            this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"Running\");");
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"running\");");`
+            this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"running\");");
         } // end of behavior for MOVE_TO_TARGET
     }
     
@@ -602,14 +634,14 @@ evaluateGuard = null;
         } // end of behavior for MOVE_TO_TARGET
         
         // MOVE_TO_TARGET behavior
-        // uml: do [this.tracer?.log("🛡️ User evaluating guard: " + "IsTargetReached") || this.evaluateGuard("MOVE_TO_TARGET","do [IsTargetReached] TransitionTo(GET_NEW_TARGET)")] / { this.tracer?.edgeTransition("edge2"); } TransitionTo(GET_NEW_TARGET)
+        // uml: do [this.tracer?.log("🛡️ User evaluating guard: " + "IsTargetReached") || this.evaluateGuard("MOVE_TO_TARGET","do [IsTargetReached] TransitionTo(GET_NEW_TARGET)")] / { this.tracer?.edgeTransition("edge4"); } TransitionTo(GET_NEW_TARGET)
         if (this.tracer?.log("🛡️ User evaluating guard: " + "IsTargetReached") || this.evaluateGuard("MOVE_TO_TARGET","do [IsTargetReached] TransitionTo(GET_NEW_TARGET)"))
         {
             // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
             this.#MOVE_TO_TARGET_exit();
             
-            // Step 2: Transition action: `this.tracer?.edgeTransition("edge2");`.
-            this.tracer?.edgeTransition("edge2");
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge4");`.
+            this.tracer?.edgeTransition("edge4");
             
             // Step 3: Enter/move towards transition target `GET_NEW_TARGET`.
             this.#GET_NEW_TARGET_enter();
@@ -617,6 +649,81 @@ evaluateGuard = null;
             // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
             return;
         } // end of behavior for MOVE_TO_TARGET
+        
+        // MOVE_TO_TARGET behavior
+        // uml: do [this.tracer?.log("🛡️ User evaluating guard: " + "PauseMove") || this.evaluateGuard("MOVE_TO_TARGET","do [PauseMove] TransitionTo(PAUSED)")] / { this.tracer?.edgeTransition("edge5"); } TransitionTo(PAUSED)
+        if (this.tracer?.log("🛡️ User evaluating guard: " + "PauseMove") || this.evaluateGuard("MOVE_TO_TARGET","do [PauseMove] TransitionTo(PAUSED)"))
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            this.#MOVE_TO_TARGET_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge5");`.
+            this.tracer?.edgeTransition("edge5");
+            
+            // Step 3: Enter/move towards transition target `PAUSED`.
+            this.#PAUSED_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for MOVE_TO_TARGET
+        
+        // No ancestor handles this event.
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////
+    // event handlers for state PAUSED
+    ////////////////////////////////////////////////////////////////////////////////
+    
+    #PAUSED_enter()
+    {
+        this.stateId = RunnerState.StateId.PAUSED;
+        
+        // PAUSED behavior
+        // uml: enter / { this.tracer?.enterState('PAUSED'); }
+        {
+            // Step 1: execute action `this.tracer?.enterState('PAUSED');`
+            this.tracer?.enterState('PAUSED');
+        } // end of behavior for PAUSED
+        
+        // PAUSED behavior
+        // uml: enter / { this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"idle\");"); }
+        {
+            // Step 1: execute action `this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"idle\");");`
+            this.tracer?.log("⚡ FSM would execute action: " + "UpdateAnimation(\"idle\");");
+        } // end of behavior for PAUSED
+    }
+    
+    #PAUSED_exit()
+    {
+        // PAUSED behavior
+        // uml: exit / { this.tracer?.exitState('PAUSED'); }
+        {
+            // Step 1: execute action `this.tracer?.exitState('PAUSED');`
+            this.tracer?.exitState('PAUSED');
+        } // end of behavior for PAUSED
+        
+        this.stateId = RunnerState.StateId.ROOT;
+    }
+    
+    #PAUSED_do()
+    {
+        // PAUSED behavior
+        // uml: do [this.tracer?.log("🛡️ User evaluating guard: " + "ResumeMove") || this.evaluateGuard("PAUSED","do [ResumeMove] TransitionTo(MOVE_TO_TARGET)")] / { this.tracer?.edgeTransition("edge6"); } TransitionTo(MOVE_TO_TARGET)
+        if (this.tracer?.log("🛡️ User evaluating guard: " + "ResumeMove") || this.evaluateGuard("PAUSED","do [ResumeMove] TransitionTo(MOVE_TO_TARGET)"))
+        {
+            // Step 1: Exit states until we reach `ROOT` state (Least Common Ancestor for transition).
+            this.#PAUSED_exit();
+            
+            // Step 2: Transition action: `this.tracer?.edgeTransition("edge6");`.
+            this.tracer?.edgeTransition("edge6");
+            
+            // Step 3: Enter/move towards transition target `MOVE_TO_TARGET`.
+            this.#MOVE_TO_TARGET_enter();
+            
+            // Step 4: complete transition. Ends event dispatch. No other behaviors are checked.
+            return;
+        } // end of behavior for PAUSED
         
         // No ancestor handles this event.
     }
@@ -627,9 +734,10 @@ evaluateGuard = null;
         switch (id)
         {
             case RunnerState.StateId.ROOT: return "ROOT";
-            case RunnerState.StateId.FREEZE: return "FREEZE";
             case RunnerState.StateId.GET_NEW_TARGET: return "GET_NEW_TARGET";
+            case RunnerState.StateId.IDLE: return "IDLE";
             case RunnerState.StateId.MOVE_TO_TARGET: return "MOVE_TO_TARGET";
+            case RunnerState.StateId.PAUSED: return "PAUSED";
             default: return "?";
         }
     }
@@ -682,13 +790,16 @@ evaluateGuard = null;
 
         // Mapping from state to available events
         const stateEventsMapping = {
-  "FREEZE": [
+  "IDLE": [
+    "do"
+  ],
+  "GET_NEW_TARGET": [
     "do"
   ],
   "MOVE_TO_TARGET": [
     "do"
   ],
-  "GET_NEW_TARGET": [
+  "PAUSED": [
     "do"
   ]
 };
