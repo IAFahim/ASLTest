@@ -14,8 +14,7 @@ namespace UIs
         [SerializeField] private ScrollItemView[] activeScrollItemViews;
         private GameObjectPool _scrollItemPool;
         
-        [Range(0, 1)] public int selectionIndex;
-        public TabComponent[] tabComponent;
+        
         [SerializeField] private CheckBox checkBox;
 
         private void Awake()
@@ -32,13 +31,9 @@ namespace UIs
                 activeScrollItemViews[i] = _scrollItemPool.Request().GetComponent<ScrollItemView>();
                 activeScrollItemViews[i].rectCallBackData.index = i;
             }
-
-            for (var i = 0; i < tabComponent.Length; i++)
-            {
-                tabComponent[i].rectCallBackData.index = i;
-            }
         }
 
+        
         private void OnDisable()
         {
             foreach (var view in activeScrollItemViews)
