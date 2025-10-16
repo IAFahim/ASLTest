@@ -61,12 +61,12 @@ public partial class RunnerState
 
     public void FindNewTarget()
     {
-        _targetAble.GetNewTarget();
+        _targetAble.OnNewTarget();
     }
     
     public void MoveTowardTarget()
     {
         _moveAble.Move();
-        isTargetReached = _targetAble.IsTargetReached();
+        isTargetReached = _targetAble.HasTargetReached();
     }
 }

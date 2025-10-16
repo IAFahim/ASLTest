@@ -1,3 +1,4 @@
 {
-  "name": "Customization.Runtime"
+  "name": "Customization.Runtime",
+  "references":[ "GUID:0dfc7b8d82894ae998c1b10611399818" ]
 }

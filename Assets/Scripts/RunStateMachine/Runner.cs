@@ -1,4 +1,5 @@
 using System;
+using EventDatas.Runtime;
 using RunStateMachine;
 using UnityEngine;
 
@@ -14,6 +15,9 @@ public class Runner : MonoBehaviour, ITargetAble, IMoveAble, IAnimatable
     [SerializeField] Vector3 direction;
     public float rangeSq = 0.01f;
     public float moveSpeed = 1;
+    public bool skipedFirst;
+
+    public EventBusIndexData eventBusIndexData; 
 
     private void OnValidate()
     {
@@ -25,15 +29,33 @@ public class Runner : MonoBehaviour, ITargetAble, IMoveAble, IAnimatable
         runnerState.Init(this, this, this);
     }
 
+    public void Play()
+    {
+        runnerState.startMove = true;
+    }
+
     private void Update()
     {
         runnerState.DispatchEvent(RunnerState.EventId.DO);
     }
 
-    public void GetNewTarget()
+    public void OnNewTarget()
     {
+        NotifyStage();
         target = targets[targetIndex];
         targetIndex = (++targetIndex) % targets.Length;
+    }
+
+    private void NotifyStage()
+    {
+        if (skipedFirst)
+        {
+            eventBusIndexData.Publish(targetIndex);
+        }
+        else
+        {
+            skipedFirst = true;
+        }
     }
 
     public void RotateTowardTarget()
@@ -54,7 +76,7 @@ public class Runner : MonoBehaviour, ITargetAble, IMoveAble, IAnimatable
         direction = diff.normalized;
     }
 
-    public bool IsTargetReached()
+    public bool HasTargetReached()
     {
         var diff = target.position - transform.position;
         return Mathf.Abs(diff.sqrMagnitude) < rangeSq;

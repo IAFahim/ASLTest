@@ -9,9 +9,8 @@ namespace UIs
     public class ColorButtonView : MonoBehaviour
     {
         public RectIndexData rectIndexData;
-        public ColorPalette colorPalette;
+        [SerializeField] private ColorPalette colorPalette;
         [SerializeField] private Image colorPreview;
-        [SerializeField] private RectTransform rect;
         [SerializeField] private Button itemButton;
 
         [SerializeField] private EventBusRectIndexData eventBusRectIndexData;
@@ -19,7 +18,7 @@ namespace UIs
 
         private void OnValidate()
         {
-            rect = GetComponent<RectTransform>();
+            rectIndexData.Assign(gameObject);
         }
 
         private void OnEnable()
@@ -27,19 +26,34 @@ namespace UIs
             itemButton.onClick.AddListener(OnButtonClicked);
         }
 
+        public void Init(int index, ColorPalette palette)
+        {
+            rectIndexData.index = index;
+            colorPalette = palette;
+            SetColor();
+        }
+        
         private void Start()
         {
-            colorPreview.color = colorPalette.colors[rectIndexData.index];
+            SetColor();
         }
 
-        private void OnDisable()
+        private void SetColor()
         {
-            itemButton.onClick.RemoveListener(OnButtonClicked);
+            colorPreview.color = colorPalette.colors[rectIndexData.index];
+            
         }
 
+        
         private void OnButtonClicked()
         {
             eventBusRectIndexData.Publish(rectIndexData);
+            colorPalette.SaveColorIndex(rectIndexData.index);
+        }
+        
+        private void OnDisable()
+        {
+            itemButton.onClick.RemoveListener(OnButtonClicked);
         }
     }
 }

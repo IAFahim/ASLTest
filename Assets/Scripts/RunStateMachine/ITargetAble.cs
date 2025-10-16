@@ -2,8 +2,8 @@ namespace RunStateMachine
 {
     public interface ITargetAble
     {
-        public void GetNewTarget();
-        public bool IsTargetReached();
+        public void OnNewTarget();
+        public bool HasTargetReached();
         public void RotateTowardTarget();
     }
 }

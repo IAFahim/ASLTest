@@ -1,10 +1,15 @@
+
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Customization.Runtime
 {
     [CreateAssetMenu(fileName = "ColorPalette", menuName = "Customization/New ColorPalettes", order = 0)]
-    public class ColorPalette : ScriptableObject
+    public class ColorPalette : ScriptableObject, ISaveLoadKey
     {
+        public int defaultValue;
+        public string key;
+
         public Color[] colors = new Color[] // AI Color Palette
         {
             new Color(0.96f, 0.41f, 0.38f),   // Vibrant Red
@@ -18,5 +23,30 @@ namespace Customization.Runtime
             new Color(0.47f, 0.53f, 0.60f),   // Slate Gray
             new Color(0.98f, 0.90f, 0.68f)    // Soft Yellow
         };
+
+        public UnityEvent<int> onColorSaved = new();
+
+        public void SaveColorIndex(int index)
+        {
+            PlayerPrefs.SetInt(key, index);
+            onColorSaved.Invoke(index);
+        }
+        
+        public int LoadColorIndex()
+        {
+            var value = PlayerPrefs.GetInt(key, defaultValue);
+            return value;
+        }
+
+        public Color LoadColor()
+        {
+            return colors[LoadColorIndex()];
+        }
+
+        public string SaveLoadKey
+        {
+            get => key;
+            set => key = value;
+        }
     }
 }

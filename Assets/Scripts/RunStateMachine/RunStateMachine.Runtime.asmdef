@@ -1,3 +1,4 @@
 {
-	"name": "RunStateMachine.Runtime"
+	"name": "RunStateMachine.Runtime",
+	"references":[ "GUID:c973abd3761e434a9b902eca8774a16c" ]
 }

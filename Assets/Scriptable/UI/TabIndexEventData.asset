@@ -10,6 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7995b47fcc584a7089f4ea366b0926df, type: 3}
-  m_Name: ColorIndexData
+  m_Name: TabIndexEventData
   m_EditorClassIdentifier: EventDatas.Runtime::EventDatas.Runtime.EventBusIndexData
   debugData: 0

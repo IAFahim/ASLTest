@@ -1,16 +1,14 @@
 
+using System;
 using UnityEngine;
 
 namespace Customization.Runtime
 {
-    public class MaterialSwitcher : MonoBehaviour, ISaveLoadAble
+    public class MaterialSwitcher : MonoBehaviour
     {
         [SerializeField] Renderer[] selfRenderer;
         [SerializeField] private ColorPalette colorPalette;
 
-        public string colorSaveKey = "playerColor";
-        public Color currentColor;
-        public int currentColorIndex;
 
         private MaterialPropertyBlock _materialPropertyBlock;
         private static readonly int Color = Shader.PropertyToID("_BaseColor");
@@ -27,13 +25,18 @@ namespace Customization.Runtime
 
         private void OnEnable()
         {
-            Load();
-            SetColor(currentColor);
+            colorPalette.onColorSaved.AddListener(SetColor);
+            var color = colorPalette.LoadColor();
+            SetColor(color);
         }
-        
+
+        private void SetColor(int index)
+        {
+            SetColor(colorPalette.colors[index]);
+        }
+
         public void SetColor(Color color)
         {
-            currentColor = color;
             foreach (var render in selfRenderer)
             {
                 render.GetPropertyBlock(_materialPropertyBlock);
@@ -42,21 +45,9 @@ namespace Customization.Runtime
             }
         }
 
-        public string SaveLoadKey
+        private void OnDisable()
         {
-            get => colorSaveKey;
-            set => colorSaveKey = value;
-        }
-
-        public void Save()
-        {
-            PlayerPrefs.SetInt(colorSaveKey, currentColorIndex);
-        }
-        
-        public void Load()
-        {
-            currentColorIndex = PlayerPrefs.GetInt(colorSaveKey, currentColorIndex);
-            currentColor = colorPalette.colors[currentColorIndex];
+            colorPalette.onColorSaved.RemoveListener(SetColor);
         }
     }
 }

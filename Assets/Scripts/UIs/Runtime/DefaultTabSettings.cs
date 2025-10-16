@@ -6,11 +6,11 @@ namespace UIs
     public class DefaultTabSettings : MonoBehaviour
     {
         public int defaultTab;
-        [SerializeField] private EventBusIndexData eventTabIndexData;
+        [SerializeField] private EventBusIndexData tabIndexEventData;
         
         private void Start()
         {
-            eventTabIndexData.Publish(defaultTab);
+            tabIndexEventData.Publish(defaultTab);
         }
     }
 }
