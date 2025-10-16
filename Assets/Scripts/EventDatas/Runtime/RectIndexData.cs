@@ -1,13 +1,14 @@
 using System;
 using UnityEngine;
 
-namespace UIs
+namespace EventDatas.Runtime
+    
 {
     [Serializable]
-    public struct RectCallBackData
+    public struct RectIndexData
     {
-        public int index;
         public RectTransform selfRectTransform;
+        public int index;
 
         public void Assign(GameObject parent)
         {

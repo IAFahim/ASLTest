@@ -1,4 +1,4 @@
-using System;
+using EventDatas.Runtime;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,13 +6,12 @@ namespace UIs
 {
     public class TabComponent : MonoBehaviour
     {
-        public RectCallBackData rectCallBackData;
+        public int indexData;
         [SerializeField] private Button button;
-        [SerializeField] private EventBusRectCallBackData eventBusRectCallBackData;
+        [SerializeField] private EventBusIndexData eventBusTabIndexData;
 
         private void OnValidate()
         {
-            rectCallBackData.Assign(gameObject);
             button = GetComponent<Button>();
         }
 
@@ -26,9 +25,10 @@ namespace UIs
             button.onClick.RemoveListener(OnButtonClicked);
         }
 
+
         private void OnButtonClicked()
         {
-            eventBusRectCallBackData.PublishSelection(rectCallBackData);
+            eventBusTabIndexData.Publish(indexData);
         }
     }
 }

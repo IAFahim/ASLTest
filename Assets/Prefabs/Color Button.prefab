@@ -133,13 +133,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 098c4ebbae3a47769d209e4b70a969c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UIs.Runtime::UIs.ScrollItemView
-  rectCallBackData:
+  rectIndexData:
     index: 0
-    selfRectTransform: {fileID: 0}
+    selfRectTransform: {fileID: 8340401782324436653}
   colorPreview: {fileID: 5103273910549288980}
   rect: {fileID: 8340401782324436653}
   itemButton: {fileID: 4223376693969275923}
-  defaultPosition: {x: 0, y: 0}
-  onClick:
-    m_PersistentCalls:
-      m_Calls: []
+  eventBusRectIndexData: {fileID: 11400000, guid: 79f12cf01e0a8ea6dbf05bba2873f130, type: 2}
