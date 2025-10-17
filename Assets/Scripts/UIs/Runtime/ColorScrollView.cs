@@ -40,6 +40,7 @@ namespace UIs
         {
             tabIndexEventData.OnSelectionChanged += TabIndexEventDataOnOnSelectionChanged;
             colorRectIndexEventBus.OnSelectionChanged += OnColorChange;
+            LoadColorPalette(currentColorPalette = colorPalettes[0]);
         }
         
         void OnColorChange(RectIndexData obj)

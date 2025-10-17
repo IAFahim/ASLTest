@@ -92,10 +92,13 @@ public class Runner : MonoBehaviour, ITargetAble, IMoveAble, IAnimatable
     {
         lastAnimationSpeed = animator.speed;
         animator.speed = 0;
+        runnerState.pause = true;
     }
 
     public void Resume()
     {
-        animator.speed = lastAnimationSpeed;
+        animator.speed = 1;
+        runnerState.pause = false;
+        animator.Play("running");
     }
 }
